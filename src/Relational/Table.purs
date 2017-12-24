@@ -44,9 +44,6 @@ type Person =
   , age :: Int
   }
 
-persons :: Table {} Person
-persons = new
-
 persons1 :: Table
   { name :: Index String Person
   , age  :: Index Int Person
@@ -54,4 +51,4 @@ persons1 :: Table
 persons1 =
       (SProxy :: SProxy "age")
   :-: (SProxy :: SProxy "name")
-  :-: persons
+  :-: new
