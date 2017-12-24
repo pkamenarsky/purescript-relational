@@ -1,13 +1,15 @@
 module Relational.Table where
 
-import Data.Map as M
-import Data.Record as R
 import Data.Symbol
+
+import Data.Map as M
+import Data.Maybe (Maybe)
+import Data.Record as R
+import Prelude (($))
 import Type.Row (class RowLacks)
 import Undefined (undefined)
-import Prelude (($))
 
-data Index v a = HashIndex (a -> v)
+data Index v a = HashIndex (a -> v) (M.Map v (Array a))
 
 data Table indices a = Table
   { pk :: Int
@@ -22,6 +24,12 @@ new = Table
   , indices: {}
   }
 
+insert :: ∀ indices a. a -> Table indices a -> Table indices a
+insert = undefined
+
+lookup :: ∀ index indices r i a. RowCons index (Index i a) r indices => SProxy index -> i -> Table (Record indices) a -> Maybe a
+lookup = undefined
+
 addHashIndex
   :: ∀ ii io iname v r a.
      IsSymbol iname
@@ -32,7 +40,7 @@ addHashIndex
   -> Table (Record ii) (Record a)
   -> Table (Record io) (Record a)
 addHashIndex index (Table table) = Table $ table
- { indices = R.insert index (HashIndex $ R.get index) table.indices
+ { indices = R.insert index (HashIndex (R.get index) M.empty) table.indices
  }
 
 infixr 6 addHashIndex as :-:
@@ -44,11 +52,26 @@ type Person =
   , age :: Int
   }
 
-persons1 :: Table
+person :: Person
+person =
+  { name: "phil"
+  , age: 6
+  }
+
+type PersonTable = Table
   { name :: Index String Person
   , age  :: Index Int Person
-  } Person
-persons1 =
+  }
+  Person
+
+persons :: PersonTable
+persons =
       (SProxy :: SProxy "age")
   :-: (SProxy :: SProxy "name")
   :-: new
+
+insert_test :: PersonTable
+insert_test = insert person persons
+
+lookup_test :: Maybe Person
+lookup_test = lookup (SProxy :: SProxy "age") 5 persons
