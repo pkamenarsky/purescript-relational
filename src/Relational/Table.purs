@@ -5,11 +5,9 @@ import Data.Symbol
 import Data.Map as M
 import Data.Maybe (Maybe)
 import Data.Record as R
-import Prelude (($))
-import Type.Row (class RowLacks)
+import Prelude (($), (<>))
+import Type.Row (class RowLacks, Cons, Nil, kind RowList)
 import Undefined (undefined)
-
-import Prelude
 
 data Index v a = HashIndex (a -> v) (M.Map v (Array a))
 
@@ -28,6 +26,12 @@ new = Table
 
 insertWith :: ∀ k v. (v -> v -> v) -> k -> v -> M.Map k v -> M.Map k v
 insertWith = undefined
+
+class AddToIndex (r :: RowList) a where
+  ai :: a -> r -> r
+
+instance ai1 :: AddToIndex Nil a
+instance ai2 :: AddToIndex as a => AddToIndex (Cons f (Index v a) as) a
 
 addToIndex :: ∀ a v. a -> Index v a -> Index v a
 addToIndex a (HashIndex f m) = HashIndex f (insertWith (<>) (f a) [a] m)
