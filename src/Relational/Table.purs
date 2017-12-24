@@ -1,39 +1,57 @@
 module Relational.Table where
 
+import Data.Map as M
+import Data.Record as R
 import Data.Symbol
-import Type.Row
-import Undefined
-import Prelude
-
-data Map k v
+import Type.Row (class RowLacks)
+import Undefined (undefined)
+import Prelude (($))
 
 data Index v a = HashIndex (a -> v)
 
-data Table (indices :: # Type) a = Table a (Record indices)
+data Table indices a = Table
+  { pk :: Int
+  , map :: M.Map Int a
+  , indices :: indices
+  }
+
+new :: ∀ a. Table {} a
+new = Table
+  { pk: 0
+  , map: M.empty
+  , indices: {}
+  }
+
+addHashIndex
+  :: ∀ ii io iname v r a.
+     IsSymbol iname
+  => RowLacks iname ii
+  => RowCons iname (Index v (Record a)) ii io
+  => RowCons iname v r a
+  => SProxy iname
+  -> Table (Record ii) (Record a)
+  -> Table (Record io) (Record a)
+addHashIndex index (Table table) = Table $ table
+ { indices = R.insert index (HashIndex $ R.get index) table.indices
+ }
+
+infixr 6 addHashIndex as :-:
+
+--------------------------------------------------------------------------------
 
 type Person =
   { name :: String
   , age :: Int
   }
 
-new :: ∀ a. Table () a
-new = undefined
-
-addHashIndex
-  :: ∀ ii io iname v a.
-     RowCons iname (Index v a) ii io
-  => SProxy iname
-  -> (a -> v)
-  -> Table ii a
-  -> Table io a
-addHashIndex = undefined
-
-persons :: Table () Person
+persons :: Table {} Person
 persons = new
 
 persons1 :: Table
-  ( name :: Index String Person
+  { name :: Index String Person
   , age  :: Index Int Person
-  )
-  Person
-persons1 = addHashIndex (SProxy :: SProxy "age") (_.age) $ addHashIndex (SProxy :: SProxy "name") (_.name) persons
+  } Person
+persons1 =
+      (SProxy :: SProxy "age")
+  :-: (SProxy :: SProxy "name")
+  :-: persons
