@@ -9,6 +9,8 @@ import Prelude (($))
 import Type.Row (class RowLacks)
 import Undefined (undefined)
 
+import Prelude
+
 data Index v a = HashIndex (a -> v) (M.Map v (Array a))
 
 data Table indices a = Table
@@ -23,6 +25,12 @@ new = Table
   , map: M.empty
   , indices: {}
   }
+
+insertWith :: ∀ k v. (v -> v -> v) -> k -> v -> M.Map k v -> M.Map k v
+insertWith = undefined
+
+addToIndex :: ∀ a v. a -> Index v a -> Index v a
+addToIndex a (HashIndex f m) = HashIndex f (insertWith (<>) (f a) [a] m)
 
 insert :: ∀ indices a. a -> Table indices a -> Table indices a
 insert = undefined
