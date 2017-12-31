@@ -9,6 +9,14 @@ import Prelude (($), (<>))
 import Type.Row (class RowLacks, Cons, Nil, kind RowList)
 import Undefined (undefined)
 
+data Ref a = Ref Int
+
+type Permissions read update create =
+  { read   :: read
+  , update :: update
+  , create :: create
+  }
+
 data Index v a = HashIndex (a -> v) (M.Map v (Array a))
 
 data Table indices a = Table
@@ -27,11 +35,14 @@ new = Table
 insertWith :: ∀ k v. (v -> v -> v) -> k -> v -> M.Map k v -> M.Map k v
 insertWith = undefined
 
-class AddToIndex (r :: RowList) a where
-  ai :: a -> r -> r
-
-instance ai1 :: AddToIndex Nil a
-instance ai2 :: AddToIndex as a => AddToIndex (Cons f (Index v a) as) a
+-- class AddToIndex (r :: RowList) a where
+--   ai :: a -> r -> r
+-- 
+-- instance ai1 :: AddToIndex Nil a where
+--   ai = undefined
+-- 
+-- instance ai2 :: AddToIndex as a => AddToIndex (Cons f (Index v a) as) a where
+--   ai = undefined
 
 addToIndex :: ∀ a v. a -> Index v a -> Index v a
 addToIndex a (HashIndex f m) = HashIndex f (insertWith (<>) (f a) [a] m)
