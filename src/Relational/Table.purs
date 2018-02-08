@@ -109,12 +109,14 @@ data Array' (o :: Symbol) a
 data O (o :: Symbol)
 data OMul (o1 :: Type) (o2 :: Type)
 
+infixr 6 type OMul as ×
+
 data Query (o :: Type) a
 
 lookupO :: ∀ k v o. k -> Map o k v -> Query (O "1") (Maybe v)
 lookupO = undefined
 
-traverseO :: ∀ a b o1 o2. (a -> Query o1 b) -> Array' o2 a -> Query (OMul o1 (O o2)) (Array b)
+traverseO :: ∀ a b o1 o2. (a -> Query o1 b) -> Array' o2 a -> Query (o1 × O o2) (Array b)
 traverseO = undefined
 
 elemsO :: ∀ k v o. Map o k v -> Query (O o) (Array' o v)
@@ -126,7 +128,7 @@ mapQ = undefined
 pureQ :: ∀ a. a -> Query (O "1") a
 pureQ = undefined
 
-bindQ :: ∀ a b o1 o2. Query o1 a -> (a -> Query o2 b) -> Query (OMul o1 o2) a
+bindQ :: ∀ a b o1 o2. Query o1 a -> (a -> Query o2 b) -> Query (o1 × o2) a
 bindQ = undefined
 
 users :: Map "u" String String 
