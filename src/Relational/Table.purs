@@ -9,6 +9,7 @@ import Data.Traversable
 import Data.Tuple
 import Prelude (($), (<>), flip)
 import Type.Row (class RowLacks, Cons, Nil, kind RowList)
+import Type.Data.Symbol
 import Undefined (undefined)
 
 data Ref a = Ref Int
@@ -117,10 +118,7 @@ data Query (o :: Type) a
 lookupO :: ∀ k v o. k -> Map o k v -> Query (OLog o) (Maybe v)
 lookupO = undefined
 
-traverseO :: ∀ a b o1 o2. (a -> Query o1 b) -> Array' o2 a -> Query (o1 × O o2) (Array b)
-traverseO = undefined
-
-elemsO :: ∀ k v o. Map o k v -> Query (O o) (Array' o v)
+elemsO :: ∀ k v o. Map o k v -> Query (O o) v
 elemsO = undefined
 
 mapQ :: ∀ a b o. (a -> b) -> Query o a -> Query o b
@@ -138,10 +136,31 @@ users = undefined
 addresses :: Map "a" String String 
 addresses = undefined
 
+-- test :: Query (O "u" × O "a" × OLog "u" × O "1") String
 test = do
-  users'      <- elemsO users
-  addresses'  <- elemsO addresses
-  userAddress <- flip traverseO addresses' \address -> lookupO address users
-  pureQ userAddress
+  user    <- elemsO users
+  address <- elemsO addresses
+  a <- lookupO address users
+  pureQ a
   where
     bind = bindQ
+
+simplify :: ∀ i o a. Simplify i o => Query i a -> Query o a
+simplify = undefined
+
+class Simplify i o | i -> o
+
+instance simplifyOa_1 :: IsSymbol o => Simplify (O o) (O o)
+
+instance simplifyOa_2 :: IsSymbol o => Simplify (OLog o) (OLog o)
+
+instance simplifyOb_1 :: Simplify a b => Simplify (a × O "1") b
+
+instance simplifyOb_2 :: Simplify a b => Simplify (O "1" × a) b
+
+instance simplifyOmul_1 :: (IsSymbol a, IsSymbol b) => Simplify (O a × O b) (O a × O b)
+instance simplifyOmul_2 :: (IsSymbol a, IsSymbol b) => Simplify (O a × OLog b) (O a × OLog b)
+instance simplifyOmul_3 :: (IsSymbol a, IsSymbol b) => Simplify (OLog a × OLog b) (OLog a × OLog b)
+instance simplifyOmul_4 :: (IsSymbol a, IsSymbol b) => Simplify (OLog a × O b) (OLog a × O b)
+
+instance simplifyOmul_z :: (Simplify a b, Simplify c d, Simplify (b × d) e) => Simplify (a × c) e
