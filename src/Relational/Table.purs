@@ -1,15 +1,15 @@
 module Relational.Table where
 
-import Data.Symbol
-
-import Data.Map as M
 import Data.Maybe
-import Data.Record as R
+import Data.Symbol
 import Data.Traversable
 import Data.Tuple
-import Prelude (($), (<>), flip)
-import Type.Row (class RowLacks, Cons, Nil, kind RowList)
 import Type.Data.Symbol
+
+import Data.Map as M
+import Data.Record as R
+import Prelude (($), (<>), flip, (<<<))
+import Type.Row (class RowLacks, Cons, Nil, kind RowList)
 import Undefined (undefined)
 
 data Ref a = Ref Int
@@ -164,3 +164,32 @@ instance simplifyOmul_3 :: (IsSymbol a, IsSymbol b) => Simplify (OLog a × OLog 
 instance simplifyOmul_4 :: (IsSymbol a, IsSymbol b) => Simplify (OLog a × O b) (OLog a × O b)
 
 instance simplifyOmul_z :: (Simplify a b, Simplify c d, Simplify (b × d) e) => Simplify (a × c) e
+
+--------------------------------------------------------------------------------
+
+class Migration a b where
+  migrate :: a -> b
+
+data A
+data B
+data C
+
+{-
+* idea, having this:
+
+migrations = 
+  { migration1 :: A -> B
+  , migration2 :: B -> C
+  , migration3 :: C -> D
+  }
+  
+* then this should work:
+
+d :: D
+d :: migrate migrations (undefined :: A)
+
+c :: C
+c :: migrate migrations (undefined :: B)
+
+...etc
+-}
