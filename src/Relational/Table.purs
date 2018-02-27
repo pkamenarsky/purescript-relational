@@ -22,17 +22,19 @@ type Permissions read update create =
 
 data Index v a = HashIndex (a -> v) (M.Map v (Array a))
 
-data Table indices a = Table
+data Table indices refby a = Table
   { pk :: Int
   , map :: M.Map Int a
   , indices :: indices
+  , refby :: refby
   }
 
-new :: ∀ a. Table {} a
+new :: ∀ a. Table {} {} a
 new = Table
   { pk: 0
   , map: M.empty
   , indices: {}
+  , refby: {}
   }
 
 insertWith :: ∀ k v. (v -> v -> v) -> k -> v -> M.Map k v -> M.Map k v
@@ -50,21 +52,21 @@ insertWith = undefined
 addToIndex :: ∀ a v. a -> Index v a -> Index v a
 addToIndex a (HashIndex f m) = HashIndex f (insertWith (<>) (f a) [a] m)
 
-insert :: ∀ indices a. a -> Table indices a -> Table indices a
+insert :: ∀ indices refby a. a -> Table indices refby a -> Table indices refby a
 insert = undefined
 
-lookup :: ∀ index indices r i a. RowCons index (Index i a) r indices => SProxy index -> i -> Table (Record indices) a -> Maybe a
+lookup :: ∀ index indices refby r i a. RowCons index (Index i a) r indices => SProxy index -> i -> Table (Record indices) refby a -> Maybe a
 lookup = undefined
 
 addHashIndex
-  :: ∀ ii io iname v r a.
+  :: ∀ ii io iname v r a refby.
      IsSymbol iname
   => RowLacks iname ii
   => RowCons iname (Index v (Record a)) ii io
   => RowCons iname v r a
   => SProxy iname
-  -> Table (Record ii) (Record a)
-  -> Table (Record io) (Record a)
+  -> Table (Record ii) refby (Record a)
+  -> Table (Record io) refby (Record a)
 addHashIndex index (Table table) = Table $ table
  { indices = R.insert index (HashIndex (R.get index) M.empty) table.indices
  }
@@ -88,6 +90,7 @@ type PersonTable = Table
   { name :: Index String Person
   , age  :: Index Int Person
   }
+  {}
   Person
 
 persons :: PersonTable
