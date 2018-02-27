@@ -29,12 +29,12 @@ data Table indices refby a = Table
   , refby :: refby
   }
 
-new :: ∀ a. Table {} {} a
+new :: ∀ a refby. Table {} refby a
 new = Table
   { pk: 0
   , map: M.empty
   , indices: {}
-  , refby: {}
+  , refby: undefined
   }
 
 insertWith :: ∀ k v. (v -> v -> v) -> k -> v -> M.Map k v -> M.Map k v
@@ -75,6 +75,17 @@ infixr 6 addHashIndex as :-:
 
 --------------------------------------------------------------------------------
 
+type Address =
+  { address :: String
+  , person :: Ref Person
+  }
+
+type AddressTable = Table
+  { address :: Index String Address
+  }
+  {}
+  Person
+
 type Person =
   { name :: String
   , age :: Int
@@ -90,7 +101,8 @@ type PersonTable = Table
   { name :: Index String Person
   , age  :: Index Int Person
   }
-  {}
+  { address :: AddressTable
+  }
   Person
 
 persons :: PersonTable
