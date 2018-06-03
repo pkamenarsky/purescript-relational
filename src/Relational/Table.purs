@@ -1,5 +1,6 @@
 module Relational.Table where
 
+import Data.Either
 import Data.Maybe
 import Data.Symbol
 import Data.Traversable
@@ -8,7 +9,7 @@ import Type.Data.Symbol
 
 import Data.Map as M
 import Data.Record as R
-import Prelude (($), (<>), flip, (<<<))
+import Prelude (($), (<>), flip, (<<<), Unit)
 import Type.Row (class RowLacks, Cons, Nil, kind RowList)
 import Undefined (undefined)
 
@@ -101,9 +102,12 @@ type PersonTable = Table
   { name :: Index String Person
   , age  :: Index Int Person
   }
-  { address :: AddressTable
+  { address :: Address
   }
   Person
+
+delete :: ∀ indices refby a. a -> Table indices refby a -> Either refby Unit
+delete = undefined
 
 persons :: PersonTable
 persons =
